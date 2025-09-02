@@ -9,13 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # 1. Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
+      # 2. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # 3. Install system dependencies + Buildozer + Cython
       - name: Install dependencies
         run: |
           sudo apt update
@@ -23,7 +27,8 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Install Android SDK + Build-tools + NDK (aidl fix)
+      # 4. Install Android SDK + stable Build-tools + NDK
+      - name: Install Android SDK + Build-tools + NDK
         run: |
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
           cd $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
@@ -34,24 +39,34 @@ jobs:
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
           mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
 
+          # Set environment variables
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
 
+          # Accept licenses
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
+
+          # Install stable packages
           sdkmanager --sdk_root=$ANDROID_HOME \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.2" \
             "ndk;25.2.9519653"
 
+          # Verify tools
+          sdkmanager --version
           aidl --help
 
+      # 5. Build APK
       - name: Build Debug APK
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
           buildozer android debug --verbose
 
+      # 6. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
