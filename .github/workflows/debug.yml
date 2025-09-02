@@ -63,15 +63,16 @@ jobs:
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
 
-          # ✅ Clean build
+          # ✅ Clean previous builds
           buildozer android clean
 
-          # ✅ Clone python-for-android manually if missing
+          # ✅ Clone python-for-android manually if folder missing
           if [ ! -d ".buildozer/android/platform/python-for-android" ]; then
+              echo "Cloning python-for-android..."
               git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
           fi
 
-          # ✅ Build APK
+          # ✅ Build debug APK
           buildozer android debug --verbose
 
       # 7️⃣ Upload APK artifact
