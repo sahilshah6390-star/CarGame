@@ -11,26 +11,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # 2. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # 3. Install dependencies + Buildozer + Android SDK tools
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip python3-setuptools python3-venv \
-                              build-essential git zip unzip openjdk-17-jdk
+                              build-essential git zip unzip openjdk-17-jdk wget
           pip install --upgrade pip
           pip install buildozer cython
 
+          # Install Android SDK command line tools
+          mkdir -p $HOME/Android/cmdline-tools
+          cd $HOME/Android/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip
+          rm cmdline-tools.zip
+
+          export ANDROID_HOME=$HOME/Android
+          export PATH=$ANDROID_HOME/cmdline-tools/cmdline-tools/bin:$ANDROID_HOME/platform-tools:$PATH
+
+          yes | sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+
+      # 4. Build Debug APK
       - name: Build Debug APK
         run: |
-          buildozer -v android debug
+          buildozer android debug
 
+      # 5. Upload APK artifact
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
