@@ -2,64 +2,62 @@ name: Build Cars Special APK (Debug)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
-      - name: Checkout repo
+      # 1. Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Setup Python
-      - name: Setup Python
+      # 2. Setup latest Python
+      - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # 3. Install system dependencies + Buildozer + Cython
+      # 3. Install dependencies + Buildozer latest
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip python3-setuptools python3-venv build-essential git zip unzip openjdk-17-jdk wget curl
           pip install --upgrade pip
-          pip install buildozer cython
+          pip install --upgrade buildozer cython
 
-      # 4. Install Android SDK + Build-tools + NDK
-      - name: Install Android SDK + Build-tools + NDK
+      # 4. Install latest Android SDK, Build-tools, NDK
+      - name: Install Android SDK + Latest Build-tools + NDK
         run: |
-          # Create SDK folder
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
-          cd $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
+          SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p $SDK_DIR/cmdline-tools
+          cd $SDK_DIR/cmdline-tools
 
-          # Download latest command-line tools
+          # Download latest command line tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
           unzip cmdline-tools.zip
           rm cmdline-tools.zip
 
-          # Keep original structure for Buildozer compatibility
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+          mkdir -p $SDK_DIR/cmdline-tools/latest
+          mv $SDK_DIR/cmdline-tools/cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
 
           # Set environment variables
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
+          export ANDROID_HOME=$SDK_DIR
+          export ANDROID_SDK_ROOT=$SDK_DIR
+          export PATH=$SDK_DIR/cmdline-tools/latest/bin:$SDK_DIR/platform-tools:$SDK_DIR/build-tools/34.0.1:$PATH
 
-          # Accept all licenses
-          yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          # Accept licenses
+          yes | sdkmanager --sdk_root=$SDK_DIR --licenses
 
-          # Install stable packages
-          sdkmanager --sdk_root=$ANDROID_HOME \
+          # Install latest stable packages
+          sdkmanager --sdk_root=$SDK_DIR \
             "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
+            "platforms;android-34" \
+            "build-tools;34.0.1" \
             "ndk;25.2.9519653"
 
-          # Verify tools
-          sdkmanager --version
+          # Verify aidl
           aidl --help
 
       # 5. Build Debug APK
@@ -67,10 +65,10 @@ jobs:
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.1:$PATH
           buildozer android debug --verbose
 
-      # 6. Upload APK artifact
+      # 6. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
