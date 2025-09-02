@@ -7,14 +7,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
+    steps:
+      # 1. Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
+      # 3. Install system dependencies + Buildozer + Cython
       - name: Install dependencies
         run: |
           sudo apt update
@@ -22,6 +27,7 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython
 
+      # 4. Install Android SDK + stable Build-tools + NDK (aidl fix)
       - name: Install Android SDK + Build-tools + NDK
         run: |
           mkdir -p $HOME/Android/cmdline-tools
@@ -37,19 +43,28 @@ jobs:
           export ANDROID_HOME=$HOME/Android
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
 
+          # Accept all licenses
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
-          sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
 
-          # Add build-tools to PATH (aidl fix)
+          # Install stable packages
+          sdkmanager --sdk_root=$ANDROID_HOME \
+            "platform-tools" \
+            "platforms;android-33" \
+            "build-tools;33.0.2" \
+            "ndk;25.2.9519653"
+
+          # Add build-tools to PATH for aidl
           export PATH=$ANDROID_HOME/build-tools/33.0.2:$PATH
           aidl --help
 
+      # 5. Build Debug APK
       - name: Build APK
         run: |
           export ANDROID_HOME=$HOME/Android
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
           buildozer android debug --verbose
 
+      # 6. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
