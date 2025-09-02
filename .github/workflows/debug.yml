@@ -1,91 +1,16 @@
-name: Build Cars Special APK (Debug & Release)
+# 6️⃣ Clean + Build APK
+- run: |
+    export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+    export ANDROID_SDK_ROOT=$ANDROID_HOME
+    export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+    # ✅ Clean build
+    buildozer android clean
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+    # ✅ Clone python-for-android manually if missing
+    if [ ! -d ".buildozer/android/platform/python-for-android" ]; then
+        git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
+    fi
 
-    steps:
-      # 1️⃣ Checkout repository
-      - uses: actions/checkout@v3
-
-      # 2️⃣ Setup Python
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      # 3️⃣ Install system dependencies
-      - run: |
-          sudo apt update
-          sudo apt install -y python3-pip python3-setuptools python3-venv build-essential git zip unzip openjdk-17-jdk wget curl \
-            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev ffmpeg
-
-      # 4️⃣ Install Python dependencies (compatible versions)
-      - run: |
-          pip install --upgrade pip
-          pip install buildozer==1.4.0 python-for-android==2023.9.16 cython
-
-      # 5️⃣ Setup Android SDK + NDK
-      - run: |
-          SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
-          mkdir -p $SDK_DIR/cmdline-tools
-          cd $SDK_DIR/cmdline-tools
-
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip -d temp
-          rm cmdline-tools.zip
-
-          mkdir -p $SDK_DIR/cmdline-tools/latest
-          mv temp/cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
-          rm -rf temp
-
-          mkdir -p $SDK_DIR/tools
-          cp -r $SDK_DIR/cmdline-tools/latest/* $SDK_DIR/tools/
-
-          export ANDROID_HOME=$SDK_DIR
-          export ANDROID_SDK_ROOT=$SDK_DIR
-          export PATH=$SDK_DIR/cmdline-tools/latest/bin:$SDK_DIR/platform-tools:$SDK_DIR/build-tools/33.0.2:$PATH
-
-          yes | sdkmanager --sdk_root=$SDK_DIR --licenses
-          sdkmanager --sdk_root=$SDK_DIR \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
-            "ndk;25.2.9519653"
-
-      # 6️⃣ Clean + Build APK
-      - run: |
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
-
-          # ✅ Clean build
-          buildozer android clean
-
-          # ✅ Clone python-for-android manually if missing
-          if [ ! -d ".buildozer/android/platform/python-for-android" ]; then
-              git clone https://github.com/kivy/python-for-android.git .buildozer/android/platform/python-for-android
-          fi
-
-          # ✅ Build APK
-          buildozer android debug --verbose
-
-      # 7️⃣ Upload APK artifact
-      - uses: actions/upload-artifact@v4
-        with:
-          name: CarsSpecial-debug
-          path: bin/**/*.apk
-
-      # 8️⃣ Create GitHub Release & attach APK
-      - uses: ncipollo/release-action@v1
-        with:
-          tag: "debug-${{ github.run_number }}"
-          name: "CarsSpecial Debug APK #${{ github.run_number }}"
-          body: "Automated debug APK build from GitHub Actions."
-          draft: false
-          prerelease: true
-          artifacts: "bin/**/*.apk"
+    # ✅ Build APK
+    buildozer android debug --verbose
