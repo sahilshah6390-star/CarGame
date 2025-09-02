@@ -19,16 +19,15 @@ jobs:
         with:
           python-version: "3.10"
 
-      # 3. Install Buildozer latest + dependencies
-      - name: Install Buildozer + dependencies
+      # 3. Install Buildozer + python-for-android + dependencies
+      - name: Install Buildozer + p4a
         run: |
           sudo apt update
           sudo apt install -y python3-pip python3-setuptools python3-venv build-essential git zip unzip openjdk-17-jdk wget curl
           pip install --upgrade pip
-          pip install --upgrade buildozer cython
-
-          # Verify Buildozer version
+          pip install --upgrade buildozer python-for-android cython
           buildozer --version
+          python -m pythonforandroid.toolchain --version
 
       # 4. Install Android SDK + Build-tools + NDK
       - name: Install Android SDK, Build-tools, NDK
@@ -42,7 +41,7 @@ jobs:
           unzip cmdline-tools.zip
           rm cmdline-tools.zip
 
-          # Move latest tools into Buildozer expected path
+          # Move latest tools to Buildozer expected path
           mkdir -p $SDK_DIR/cmdline-tools/latest
           mv $SDK_DIR/cmdline-tools/cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
           mkdir -p $SDK_DIR/tools
@@ -66,8 +65,8 @@ jobs:
           # Verify aidl
           aidl --help
 
-      # 5. Build Debug APK with Buildozer
-      - name: Build APK
+      # 5. Build APK using Buildozer (P4A latest)
+      - name: Build Debug APK
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
