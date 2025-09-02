@@ -1,4 +1,4 @@
-name: Build Cars Special APK (Debug)
+namename: Build Cars Special APK (Debug)
 
 on:
   push:
@@ -39,13 +39,14 @@ jobs:
           unzip cmdline-tools.zip
           rm cmdline-tools.zip
 
+          # Set environment variables
           export ANDROID_HOME=$HOME/Android
           export PATH=$ANDROID_HOME/cmdline-tools/cmdline-tools/bin:$ANDROID_HOME/platform-tools:$PATH
 
           # Accept licenses
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
 
-          # Install platform-tools, build-tools (contains aidl), NDK
+          # Install required packages including build-tools (aidl)
           sdkmanager --sdk_root=$ANDROID_HOME \
             "platform-tools" \
             "platforms;android-33" \
