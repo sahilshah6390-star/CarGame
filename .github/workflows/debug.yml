@@ -8,68 +8,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    container:
+      image: kivy/buildozer:python3.10-android   # <- safest, all deps preinstalled
+
     steps:
-      # 1. Checkout repository
+      # 1️⃣ Checkout repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup Python
-      - name: Setup Python 3.10
+      # 2️⃣ Setup Python 3.10 (container already has python, safe)
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # 3. Install Buildozer + python-for-android + dependencies
-      - name: Install Buildozer + p4a
+      # 3️⃣ Install/update Buildozer + python-for-android + cython
+      - name: Install Buildozer + P4A
         run: |
-          sudo apt update
-          sudo apt install -y python3-pip python3-setuptools python3-venv build-essential git zip unzip openjdk-17-jdk wget curl
           pip install --upgrade pip
           pip install --upgrade buildozer python-for-android cython
+          buildozer --version
+          python -m pythonforandroid.toolchain --version
 
-      # 4. Install Android SDK + Build-tools + NDK
-      - name: Install Android SDK + Build-tools + NDK
-        run: |
-          SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
-          mkdir -p $SDK_DIR/cmdline-tools
-          cd $SDK_DIR/cmdline-tools
-
-          # Download command-line tools
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip
-          rm cmdline-tools.zip
-
-          # Move tools to proper path
-          mkdir -p $SDK_DIR/cmdline-tools/latest
-          mv $SDK_DIR/cmdline-tools/cmdline-tools/* $SDK_DIR/cmdline-tools/latest/
-          mkdir -p $SDK_DIR/tools
-          cp -r $SDK_DIR/cmdline-tools/latest/* $SDK_DIR/tools/
-
-          # Set environment variables
-          export ANDROID_HOME=$SDK_DIR
-          export ANDROID_SDK_ROOT=$SDK_DIR
-          export PATH=$SDK_DIR/cmdline-tools/latest/bin:$SDK_DIR/platform-tools:$SDK_DIR/build-tools/33.0.2:$PATH
-
-          # Accept licenses
-          yes | sdkmanager --sdk_root=$SDK_DIR --licenses
-
-          # Install stable SDK components
-          sdkmanager --sdk_root=$SDK_DIR \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2" \
-            "ndk;25.2.9519653"
-
-      # 5. Build Debug APK
-      - name: Build APK
+      # 4️⃣ Build APK
+      - name: Build Debug APK
         run: |
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2:$PATH
           buildozer android debug --verbose
 
-      # 6. Upload APK
-      - name: Upload APK artifact
+      # 5️⃣ Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: CarsSpecial-debug
