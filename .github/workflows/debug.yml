@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout repository
       - uses: actions/checkout@v3
 
       # 2️⃣ Setup Python
@@ -27,7 +27,7 @@ jobs:
       # 4️⃣ Install Python dependencies
       - run: |
           pip install --upgrade pip
-          pip install buildozer==1.4.2 python-for-android==2023.11.1 cython
+          pip install buildozer==1.5.0 python-for-android==2023.11.1 cython
 
       # 5️⃣ Setup Android SDK + NDK
       - run: |
