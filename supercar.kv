@@ -1,0 +1,90 @@
+:kivy 2.1.0
+<RootWidget>:
+    MenuScreen:
+        name: "menu"
+    LobbyScreen:
+        name: "lobby"
+    GarageScreen:
+        name: "garage"
+    GameScreen:
+        name: "game"
+
+<MenuScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(12)
+        spacing: dp(8)
+        Label:
+            text: "SUPERCAR MASSIVE"
+            font_size: "28sp"
+        Label:
+            text: "Owner: Sahil   @offx.sahil"
+            font_size: "12sp"
+        BoxLayout:
+            size_hint_y: None
+            height: dp(48)
+            Button:
+                text: "Play"
+                on_release: app.root.current = "lobby"
+            Button:
+                text: "Garage / Shop"
+                on_release: app.root.current = "garage"
+        Label:
+            text: "Huge placeholder project with many cars/maps. Replace assets for better visuals."
+            font_size: "12sp"
+
+<LobbyScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(8)
+        Label:
+            text: "LOBBY - Choose Map and Car"
+            font_size: "20sp"
+        BoxLayout:
+            size_hint_y: None
+            height: dp(120)
+            Image:
+                source: "assets/map_1.png"
+        BoxLayout:
+            size_hint_y: None
+            height: dp(48)
+            Button:
+                text: "Start Race"
+                on_release: app.root.current = "game"
+            Button:
+                text: "Back"
+                on_release: app.root.current = "menu"
+
+<GarageScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(6)
+        Label:
+            text: "Garage / Shop"
+            font_size: "20sp"
+        ScrollView:
+            GridLayout:
+                id: car_grid
+                cols: 3
+                size_hint_y: None
+                height: self.minimum_height
+                row_default_height: dp(140)
+                row_force_default: True
+
+        BoxLayout:
+            size_hint_y: None; height: dp(48)
+            Button:
+                text: "Back"
+                on_release: app.root.current = "menu"
+
+<GameScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "RACING (Placeholder)"
+            font_size: "20sp"
+        Button:
+            text: "Finish (back to menu)"
+            size_hint_y: None
+            height: dp(48)
+            on_release: app.root.current = "menu"
